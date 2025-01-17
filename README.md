@@ -7,7 +7,7 @@
 <tr>
     <td align="center">
         <img src="https://raw.githubusercontent.com/fravij99/Hyperspectral_classificator/master/images/hyperspectral_agricolture.png" width="600" alt="Original Foam Image">
-        <p><strong>Original Foam Image</strong></p>
+        <p><strong>Hyperspectral image representation</strong></p>
     </td>
 <table>
 
