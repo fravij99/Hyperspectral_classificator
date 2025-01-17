@@ -109,7 +109,7 @@ You can find example scripts in the repository for common tasks, such as preproc
 |-------------------|----------------------------------------------|-------------------------------|
 ![Training](https://raw.githubusercontent.com/fravij99/Hyperspectral_classificator/master/images/training_apple.png) | ![Confusion matrix](https://raw.githubusercontent.com/fravij99/Hyperspectral_classificator/master/images/confusion_apple.png) | ![Model Patameters](https://raw.githubusercontent.com/fravij99/Hyperspectral_classificator/master/images/conv3d_params.png) | 
 
-|**Fractal Fit** | **Scaling Fit** |
+|**Classified as good** | **Classified as rotten** |
 |-----------------------------------|-------------------------------------------------------------|
 |![Fractal Fit](https://raw.githubusercontent.com/fravij99/Hyperspectral_classificator/master/images/good_apple_test.png) | ![Scaling Fit](https://raw.githubusercontent.com/fravij99/Hyperspectral_classificator/master/images/apple_rotten_test.png) |
 
