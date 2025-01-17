@@ -107,11 +107,11 @@ You can find example scripts in the repository for common tasks, such as preproc
 
 | **Training** | **Confusion Matrix** | **Model Parameters** | 
 |-------------------|----------------------------------------------|-------------------------------|
-![Original](https://raw.githubusercontent.com/fravij99/Foam_Segmentation/master/datasets_and_results/above_sight/frameAV_077.jpg) | ![Binarized](https://raw.githubusercontent.com/fravij99/Foam_Segmentation/master/datasets_and_results/above_sight/binarization/frameAV_077.jpg) | ![Segmented](https://raw.githubusercontent.com/fravij99/Foam_Segmentation/master/datasets_and_results/above_sight/segmentation/frameAV_077.jpg) | 
+![Training](https://raw.githubusercontent.com/fravij99/Hyperspectral_classificator/master/images/training_apple.png) | ![Confusion matrix](https://raw.githubusercontent.com/fravij99/Hyperspectral_classificator/master/images/confusion_apple.png) | ![Model Patameters](https://raw.githubusercontent.com/fravij99/Hyperspectral_classificator/master/images/conv3d_params.png) | 
 
 |**Fractal Fit** | **Scaling Fit** |
 |-----------------------------------|-------------------------------------------------------------|
-|![Fractal Fit](https://raw.githubusercontent.com/fravij99/Foam_Segmentation/master/datasets_and_results/above_sight/fractal_fit/frameAV_077.jpg) | ![Scaling Fit](https://raw.githubusercontent.com/fravij99/Foam_Segmentation/master/datasets_and_results/above_sight/scaling_fit/frameAV_077.jpg_scaling_fit.png) |
+|![Fractal Fit](https://raw.githubusercontent.com/fravij99/Hyperspectral_classificator/master/images/good_apple_test.png) | ![Scaling Fit](https://raw.githubusercontent.com/fravij99/Hyperspectral_classificator/master/images/apple_rotten_test.png) |
 
 ---
 
