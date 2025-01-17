@@ -6,7 +6,7 @@
 <table>
 <tr>
     <td align="center">
-        <img src="https://raw.githubusercontent.com/fravij99/Hyperspectral_classificator/blob/master/images/hyperspectral_agricolture.png" width="600" alt="Original Foam Image">
+        <img src="https://raw.githubusercontent.com/fravij99/Hyperspectral_classificator/master/images/hyperspectral_agricolture.png" width="600" alt="Original Foam Image">
         <p><strong>Original Foam Image</strong></p>
     </td>
 <table>
@@ -105,7 +105,7 @@ You can find example scripts in the repository for common tasks, such as preproc
 
 ## Results 
 
-| **Original Image** | **Binarized Image** | **Segmented Image** | 
+| **Training** | **Confusion Matrix** | **Model Parameters** | 
 |-------------------|----------------------------------------------|-------------------------------|
 ![Original](https://raw.githubusercontent.com/fravij99/Foam_Segmentation/master/datasets_and_results/above_sight/frameAV_077.jpg) | ![Binarized](https://raw.githubusercontent.com/fravij99/Foam_Segmentation/master/datasets_and_results/above_sight/binarization/frameAV_077.jpg) | ![Segmented](https://raw.githubusercontent.com/fravij99/Foam_Segmentation/master/datasets_and_results/above_sight/segmentation/frameAV_077.jpg) | 
 
