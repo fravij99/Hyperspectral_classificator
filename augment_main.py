@@ -2,8 +2,8 @@ import classificatorlib
 import matplotlib.pyplot as plt
 import numpy as np
 
-input_folder = "./3_hand_in"  # Cartella contenente immagini concatenate
-output_folder = "./3_hand_out"  # Cartella per immagini preprocessate
+input_folder = "./apple_trial"  # Cartella contenente immagini concatenate
+output_folder = "./apple_trial_out"  # Cartella per immagini preprocessate
 file_type = "hdr"  # Tipo di file: "hdr" o "raw"
 num_bands = 25  # Numero di bande spettrali
 

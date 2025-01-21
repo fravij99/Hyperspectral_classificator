@@ -49,53 +49,84 @@ class HyperspectralPreprocessor:
 
     def flip_horizontal(self, image_3d):
         return np.flip(image_3d, axis=1)
-    
 
     def flip_vertical(self, image_3d):
         return np.flip(image_3d, axis=0)
-    
 
     def rotate(self, image_3d, angle):
         """
         Rotate image: angle is a 90° multiple
         """
         return rotate(image_3d, angle, axes=(0, 1), reshape=False, mode='nearest')
-    
+
+    def random_rotate(self, image_3d):
+        """
+        Rotate image by a random angle (not limited to 90° multiples).
+        """
+        random_angle = random.uniform(0, 360)  # Angolo casuale tra 0° e 360°
+        return rotate(image_3d, random_angle, axes=(0, 1), reshape=False, mode='nearest')
 
     def add_noise(self, image_3d, mode='gaussian', var=0.01):
         """
-        Add noise to the image
+        Add noise to the image.
         :param mode:  noise type (default: 'gaussian').
         :param var: noise variance (only for 'gaussian').
         """
         return random_noise(image_3d, mode=mode, var=var)
 
-
     def random_crop(self, image_3d, crop_size):
+        """
+        Crop a random region of the image.
+        """
         height, width, _ = image_3d.shape
         crop_h, crop_w = crop_size
         start_h = random.randint(0, height - crop_h)
         start_w = random.randint(0, width - crop_w)
         return image_3d[start_h:start_h + crop_h, start_w:start_w + crop_w, :]
 
+    def random_brightness_adjustment(self, image_3d, num_bands=10, brightness_factor_range=(1.2, 2.0)):
+        """
+        Randomly increase the brightness of a subset of spectral bands.
+        :param num_bands: Number of bands to adjust (default: 10).
+        :param brightness_factor_range: Tuple indicating the range of brightness adjustment factors.
+        """
+        adjusted_image = image_3d.copy()
+        total_bands = image_3d.shape[2]
+        selected_bands = random.sample(range(total_bands), num_bands)
+        brightness_factor = random.uniform(*brightness_factor_range)
+
+        for band in selected_bands:
+            adjusted_image[:, :, band] = np.clip(
+                adjusted_image[:, :, band] * brightness_factor, 0, 1
+            )
+
+        return adjusted_image
 
     def augment(self, image_3d):
         augmented_images = []
         
         # Flip
-        augmented_images.append(self.flip_horizontal(image_3d))
-        augmented_images.append(self.flip_vertical(image_3d))
+        augmented_images.append(self.random_brightness_adjustment(self.flip_horizontal(image_3d)))
+        augmented_images.append(self.random_brightness_adjustment(self.flip_vertical(image_3d)))
         
         # Rotations
-        for angle in [90, 180, 270]:
-            augmented_images.append(self.rotate(image_3d, angle))
+        for angle in [10, 20, -10, -20]:
+            augmented_images.append(self.random_brightness_adjustment(self.rotate(image_3d, angle)))
+        
+        # Random rotation
+        augmented_images.append(self.random_brightness_adjustment(self.random_rotate(image_3d)))
         
         # Add noise
-        augmented_images.append(self.add_noise(image_3d))
+        augmented_images.append(self.random_brightness_adjustment(self.add_noise(image_3d)))
         
-        # Crop
-        """crop_size = (int(self.image_shape[0] * 0.8), int(self.image_shape[1] * 0.8))
-        augmented_images.append(self.random_crop(image_3d, crop_size))"""
+        # Brightness adjustment
+        augmented_images.append(self.random_brightness_adjustment(image_3d))
+        
+        # Crop (commented out in the original code)
+        """
+        crop_size = (int(self.image_shape[0] * 0.8), int(self.image_shape[1] * 0.8))
+        augmented_images.append(self.random_crop(image_3d, crop_size))
+        """
         
         return augmented_images
     
@@ -164,20 +195,30 @@ class HyperspectralPreprocessor:
                 
                 tifffile.imwrite(file_path, image.astype(np.float32))
 
-
-    def load_images_with_labels(self, folder_three_fingers, folder_five_fingers):
-        dataset = []
-        
-        def process_folder(folder_path, label):
+    
+    def process_folder(self, dataset, folder_path, label):
             for file_name in tqdm(os.listdir(folder_path), desc='Loading images...'):
                 if file_name.endswith(".npy"):  # Controlla il formato dei file .npy
                     file_path = os.path.join(folder_path, file_name)
                     npy_image = np.load(file_path)  # Carica l'immagine .npy
                     dataset.append((npy_image, label))  # Aggiungi una tupla di immagine e label
 
+    def test_model_folder(self, dataset, folder_path):
+            for file_name in tqdm(os.listdir(folder_path), desc='Loading images...'):
+                if file_name.endswith(".npy"):  # Controlla il formato dei file .npy
+                    file_path = os.path.join(folder_path, file_name)
+                    npy_image = np.load(file_path)  # Carica l'immagine .npy
+                    dataset.append((npy_image))  # Aggiungi una tupla di immagine e label
+
+
+    def load_images_with_labels(self, folder_three_fingers, folder_five_fingers):
+        dataset = []
+        
+        
+
         # Processa le cartelle
-        process_folder(folder_three_fingers, label=0)  # Tre dita
-        process_folder(folder_five_fingers, label=1)  # Cinque dita
+        self.process_folder(dataset, folder_three_fingers, label=0)  # Tre dita
+        self.process_folder(dataset, folder_five_fingers, label=1)  # Cinque dita
 
         return dataset
 
