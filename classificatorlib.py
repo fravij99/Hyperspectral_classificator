@@ -8,6 +8,7 @@ import os
 import tifffile
 from tqdm import tqdm
 import matplotlib.pyplot as plt
+from skimage.transform import resize
 import seaborn as sns
 from sklearn.metrics import classification_report, confusion_matrix
 from sklearn.model_selection import train_test_split
@@ -25,6 +26,7 @@ class HyperspectralPreprocessor:
         image_shape: Tuple (heigth, width, band_num), 
         """
         self.image_shape = image_shape
+        self.target_shape=(53, 100, 25)
 
     def reshape_to_3d(self, concatenated_image, num_bands):
         """
@@ -66,13 +68,8 @@ class HyperspectralPreprocessor:
         random_angle = random.uniform(0, 360)  # Angolo casuale tra 0° e 360°
         return rotate(image_3d, random_angle, axes=(0, 1), reshape=False, mode='nearest')
 
-    def add_noise(self, image_3d, mode='gaussian', var=0.01):
-        """
-        Add noise to the image.
-        :param mode:  noise type (default: 'gaussian').
-        :param var: noise variance (only for 'gaussian').
-        """
-        return random_noise(image_3d, mode=mode, var=var)
+    def add_noise(self, image_3d, mode='gaussian'):
+        return random_noise(image_3d, mode=mode, clip=False)
 
     def random_crop(self, image_3d, crop_size):
         """
@@ -84,23 +81,24 @@ class HyperspectralPreprocessor:
         start_w = random.randint(0, width - crop_w)
         return image_3d[start_h:start_h + crop_h, start_w:start_w + crop_w, :]
 
-    def random_brightness_adjustment(self, image_3d, num_bands=10, brightness_factor_range=(1.2, 2.0)):
-        """
-        Randomly increase the brightness of a subset of spectral bands.
-        :param num_bands: Number of bands to adjust (default: 10).
-        :param brightness_factor_range: Tuple indicating the range of brightness adjustment factors.
-        """
+
+
+    def random_brightness_adjustment(self, image_3d, num_bands=10, brightness_factor_range=(0.5, 2.0)):
         adjusted_image = image_3d.copy()
         total_bands = image_3d.shape[2]
+
+        # Seleziona bande casuali
         selected_bands = random.sample(range(total_bands), num_bands)
         brightness_factor = random.uniform(*brightness_factor_range)
 
         for band in selected_bands:
-            adjusted_image[:, :, band] = np.clip(
-                adjusted_image[:, :, band] * brightness_factor, 0, 1
-            )
+            # Incrementa la luminosità senza clipping
+            adjusted_image[:, :, band] = adjusted_image[:, :, band] * brightness_factor
+
 
         return adjusted_image
+
+
 
     def augment(self, image_3d):
         augmented_images = []
@@ -110,7 +108,7 @@ class HyperspectralPreprocessor:
         augmented_images.append(self.random_brightness_adjustment(self.flip_vertical(image_3d)))
         
         # Rotations
-        for angle in [10, 20, -10, -20]:
+        for angle in range(90, -91, -10):
             augmented_images.append(self.random_brightness_adjustment(self.rotate(image_3d, angle)))
         
         # Random rotation
@@ -122,11 +120,6 @@ class HyperspectralPreprocessor:
         # Brightness adjustment
         augmented_images.append(self.random_brightness_adjustment(image_3d))
         
-        # Crop (commented out in the original code)
-        """
-        crop_size = (int(self.image_shape[0] * 0.8), int(self.image_shape[1] * 0.8))
-        augmented_images.append(self.random_crop(image_3d, crop_size))
-        """
         
         return augmented_images
     
@@ -136,7 +129,7 @@ class HyperspectralPreprocessor:
         Apply preprocessing to all the concatenated images given 
         """
         processed_images = []
-        for idx, image in enumerate(images):
+        for idx, image in tqdm(enumerate(images), total=len(images), desc="Processing images"):
             
             # Applica la data augmentation
             augmented_images = self.augment(image)
@@ -146,36 +139,36 @@ class HyperspectralPreprocessor:
         
         return np.array(processed_images)
     
+    
+    def resize_image(self, image, target_shape):
+        if target_shape is not None:
+            return resize(image, target_shape, anti_aliasing=True, preserve_range=True)
+        return image
+    
+
     def load_hdr_images_from_folder(self, folder_path):
-        """
-        Carica immagini HDR da una cartella.
-        
-        :param folder_path: Percorso della cartella contenente immagini HDR.
-        :return: Lista di immagini numpy concatenate.
-        """
         images = []
-        for file_name in tqdm(os.listdir(folder_path), desc='Loading images...'):
+        for file_name in tqdm(os.listdir(folder_path), desc='Loading HDR images...'):
             if file_name.endswith(".hdr"):
                 file_path = os.path.join(folder_path, file_name)
                 hdr_image = open_image(file_path).load()  # Carica l'immagine HDR
-                images.append(np.array(hdr_image))  # Converte in numpy array
+                hdr_image = np.array(hdr_image)  # Converte in numpy array
+                resized_image = self.resize_image(hdr_image, self.target_shape)
+                images.append(resized_image)
         return images
 
+
     def load_raw_images_from_folder(self, folder_path):
-        """
-        Carica immagini RAW da una cartella.
-        
-        :param folder_path: Percorso della cartella contenente immagini RAW.
-        :return: Lista di immagini numpy concatenate.
-        """
         images = []
-        for file_name in tqdm(os.listdir(folder_path), desc='Loading images...'):
+        for file_name in tqdm(os.listdir(folder_path), desc='Loading RAW images...'):
             if file_name.endswith(".raw"):
                 file_path = os.path.join(folder_path, file_name)
                 with rawpy.imread(file_path) as raw:
                     raw_image = raw.postprocess()
-                    images.append(raw_image)  # Aggiunge l'immagine RAW processata
+                    resized_image = self.resize_image(raw_image, self.target_shape)
+                    images.append(resized_image)
         return images
+    
 
     def save_images_to_folder(self, images, folder_path, file_extension):
         """
@@ -221,6 +214,31 @@ class HyperspectralPreprocessor:
         self.process_folder(dataset, folder_five_fingers, label=1)  # Cinque dita
 
         return dataset
+    
+    def plot_all_bands(self, image_3d, cmap='gray', title="Bande Spettrali"):
+        num_bands = image_3d.shape[2]  # Numero di bande spettrali
+        cols = 5  # Numero di colonne per la griglia
+        rows = (num_bands + cols - 1) // cols  # Calcola il numero di righe necessario
+
+        fig, axes = plt.subplots(rows, cols, figsize=(15, 3 * rows))
+        fig.suptitle(title, fontsize=16)
+
+        # Trova i valori globali min e max dell'immagine per mantenerli fissi
+        vmin, vmax = image_3d.min(), image_3d.max()
+
+        # Visualizza ogni banda nella griglia
+        for i in range(rows * cols):
+            ax = axes[i // cols, i % cols]  # Calcola la posizione nella griglia
+            if i < num_bands:
+                ax.imshow(image_3d[:, :, i], cmap=cmap, vmin=vmin, vmax=vmax)  # Blocca il range
+                ax.set_title(f"Banda {i+1}")
+                ax.axis('off')
+            else:
+                ax.axis('off')  # Nascondi subplot vuoti
+
+        plt.tight_layout()
+        plt.subplots_adjust(top=0.9)  # Spazio per il titolo
+        plt.show()
 
 
 class classificatorModel:
@@ -288,26 +306,33 @@ class classificatorModel:
         # Salva il modello nel formato SavedModel
         self.model.export("/content/drive/MyDrive/grape_classificator/saved_model")
         print("Modello salvato in formato SavedModel (/content/drive/MyDrive/grape_classificator/saved_model).")
-    
-    def convert_model(self, path):
-        # Carica il modello Keras dal file `.keras`
-        model = tf.keras.models.load_model(path)
 
-        # Abilita TF Select per gestire operazioni non supportate
-        converter = tf.lite.TFLiteConverter.from_keras_model(model)
-        converter.experimental_enable_resource_variables = True
+    
+    def convert_model_savedmodel(self, saved_model_path, tflite_model_path, quantize=False):
+
+        converter = tf.lite.TFLiteConverter.from_saved_model(saved_model_path)
+
+        # Abilita TF Select Ops per Conv3D e MaxPool3D
         converter.target_spec.supported_ops = [
-            tf.lite.OpsSet.TFLITE_BUILTINS,  # Operazioni native TFLite
-            tf.lite.OpsSet.SELECT_TF_OPS    # Operazioni TF Select
+            tf.lite.OpsSet.TFLITE_BUILTINS,
+            tf.lite.OpsSet.SELECT_TF_OPS
         ]
 
-        # Converte il modello
-        tflite_model = converter.convert()
+        # Abilita la quantizzazione dinamica, se richiesto
+        if quantize:
+            converter.optimizations = [tf.lite.Optimize.DEFAULT]
 
-        # Salva il modello convertito
-        with open("modello.tflite", "wb") as f:
-            f.write(tflite_model)
-        print("Modello salvato in formato TFLite con TF Select abilitato.")
+        # Converte il modello
+        try:
+            tflite_model = converter.convert()
+            # Salva il modello TFLite
+            with open(tflite_model_path, "wb") as f:
+                f.write(tflite_model)
+            print(f"Modello TFLite salvato con successo in: {tflite_model_path}")
+        except Exception as e:
+            print(f"Errore durante la conversione: {e}")
+
+
 
 
 
