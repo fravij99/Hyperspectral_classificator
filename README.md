@@ -77,7 +77,7 @@ Make sure all dependencies are installed before running the library.
 
 - **random_crop(self, image_3d, crop_size):**    Extracts a random crop of size `crop_size` (height, width) from the input 3D image.
 
-. **random_brightness_adjustment(self, image_3d, num_bands, brightness_factor_range):** Increase or decrease randomly an amount of `num_bands` of all the bands images by a factor between the `brightness_factor_range`.
+- **random_brightness_adjustment(self, image_3d, num_bands, brightness_factor_range):** Increase or decrease randomly an amount of `num_bands` of all the bands images by a factor between the `brightness_factor_range`.
 
 - **augment(self, image_3d):**    Applies a set of data augmentation techniques (e.g., flips, rotations, noise) to the input 3D image and returns a list of augmented images.
 
