@@ -1,6 +1,6 @@
 # Hyperspectral Image Processing Library
 
-![Python](https://img.shields.io/badge/python-3.8%2B-blue)  
+![Python](https://img.shields.io/badge/python-3.12%2B-blue)  
 ![MIT License](https://img.shields.io/badge/license-MIT-green)
 
 <table>
