@@ -37,7 +37,7 @@ A Python library for processing, augmenting, and classifying hyperspectral and R
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/yourusername/hyperspectral-library.git
+   git clone https://github.com/yourusername/Hyperspectral_classificator.git
    cd hyperspectral-library
 
 ## Dependencies
